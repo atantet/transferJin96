@@ -1,0 +1,113 @@
+#include <cmath>
+#include <ODESolvers.hpp>
+#include "../model/modelTJ02.hpp"
+
+/** \file modelTJ02.cpp
+ *  \brief Definitions for Timmerman and Jin (2002) ENSO model.
+ *   
+ *  Definitions for Timmerman and Jin (2002) ENSO model.
+ */
+
+/**
+ * Return the parameters of the model.
+ */
+void
+TJ02::getParameters(double *epsilon_, double *Tr0_, double *Tr_,
+		    double *alpha_, double *r_, double *Hm_,
+		    double *H_, double *z0_, double *hstar_,
+		    double *mu_, double *LB_, double *zeta_,
+		    double *bbeta_)
+{
+  *epsilon_ = epsilon;
+  *Tr0_ = Tr0;
+  *Tr_ = Tr;
+  *alpha_ = alpha;
+  *r_ = r;
+  *Hm_ = Hm;
+  *H_ = H;
+  *z0_ = z0;
+  *hstar_ = hstar;
+  *mu_ = mu;
+  *LB_ = LB;
+  *zeta_ = zeta;
+  *bbeta_ = bbeta;
+    
+  return;
+}
+
+/**
+ * Set parameters of the model.
+ */
+void
+TJ02::setParameters(const double epsilon_, const double Tr0_, double Tr_,
+		    const double alpha_, const double r_, const double Hm_,
+		    const double H_, const double z0_, const double hstar_,
+		    const double mu_, const double LB_, const double zeta_,
+		    const double bbeta_)
+{
+  epsilon = epsilon_;
+  Tr0 = Tr0_;
+  Tr = Tr_;
+  alpha = alpha_;
+  r = r_;
+  Hm = Hm_;
+  H = H_;
+  z0 = z0_;
+  hstar = hstar_;
+  mu = mu_;
+  LB = LB_;
+  zeta = zeta_;
+  bbeta = bbeta_;
+    
+  return;
+}
+
+/** 
+ * Evaluate the vector field of the Timmerman and Jin (2002) ENSO model
+ * at a given state.
+ * \param[in]  state State at which to evaluate the vector field.
+ * \param[out] field Vector resulting from the evaluation of the vector field.
+ */
+void
+TJ02::evalField(const gsl_vector *state, gsl_vector *field)
+{
+  double T1, T2, h1;
+  double uL2, wHm, taubeta, Tsub, h2, bLtau;
+
+  /** Get T1, T2 and h from state */
+  T1 = gsl_vector_get(state, 0);
+  T2 = gsl_vector_get(state, 1);
+  h1 = gsl_vector_get(state, 2);
+
+  /** Wind-stress \f$ \tau \f$ multiplied by \f$ \beta \f$ */
+  taubeta = -mu * (T1 - T2);
+  bLtau = bbeta * taubeta * LB;
+
+  /** Zonal advection \f$ u \f$ divided by \f$ L/2 \f$ */
+  uL2 = epsilon * taubeta;
+
+  /** Equatorial upwelling \f$ w \f$ divide by \f$ Hm \f$ */
+  wHm = - zeta * taubeta;
+
+  /** Diagnostic of the eastern thermocline */
+  h2 = h1 + bLtau;
+
+  /** Sub thermocline temperature */
+  Tsub = Tr - (Tr - Tr0) / 2 * (1 - tanh(H + h2 - z0) / hstar);
+
+  /** Tendency of the western SST */
+  gsl_vector_set(field, 0,
+		 -alpha * (T1 - Tr) - uL2 * (T2 - T1));
+		 
+  /** Tendency of the eastern SST */
+  gsl_vector_set(field, 1,
+		 -alpha * (T2 - Tr) - wHm * (T2 - Tsub));
+
+  /** Tendency of the western thermocline depth */
+  gsl_vector_set(field, 2,
+		 r * (-h1 - bLtau / 2));
+
+  return;
+}
+
+

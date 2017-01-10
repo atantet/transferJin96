@@ -1,0 +1,86 @@
+#ifndef MODELTJ02_HPP
+#define MODELTJ02_HPP
+
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <ODESolvers.hpp>
+
+/** \file modelTJ02.hpp
+ *  \brief Vector field for the Timmerman and Jin (2002) model of ENSO.
+ *   
+ *  Vector field for the Timmerman and Jin (2002) model of
+ *  El Nino Southern Oscillation.
+ */
+
+/** \brief Vector field for the Timmerman and Jin (2002) model of ENSO.
+ *   
+ *  Vector field for the Timmerman and Jin (2002) model of
+ *  El Nino Southern Oscillation.
+ */
+class TJ02 : public vectorField {
+  /** Fraction parameter measuring the strenght of the zonal advection. */
+  double epsilon;
+  /** Temperature beneath the thermocline */
+  double Tr0;
+  /** Radiative equilibrium temperature */
+  double Tr;
+  /** Rate at which the SST is restored to a zonally uniform
+   *  radiative–convective equilibrium temperature */
+  double alpha;
+  /** Basinwide dynamic adjustment rate */
+  double r;
+  /** Mixed-layer depth */
+  double Hm;
+  /** Reference thermocline depth */
+  double H;
+  /** Depth at which \f$ w \f$ takes its characteristic value */
+  double z0;
+  /** Sharpness of the thermocline */
+  double hstar;
+  /** Coupling */
+  double mu;
+  /** Basin width */
+  double LB;
+  /** */
+  double zeta;
+  /** \f$ mu b L \beta \f$, with \f$ b \f$ the efficiency of the wind-stress 
+   *  \f$ \tau \f$ in driving thermocline tilt and 
+   *  \f$ \beta \f$ the latitudinal variation of the Coriolis parameter
+   *  and the momentum mixing rate in the upper ocean*/
+  double bbeta;
+  
+public:
+  /** \brief Constructor defining the model parameters. */
+  TJ02(const double epsilon_, const double Tr0_, const double Tr_,
+       const double alpha_, const double r_, const double Hm_,
+       const double H_, const double z0_, const double hstar_,
+       const double mu_, const double LB_, const double zeta_,
+       const double bbeta_)
+    : vectorField(), epsilon(epsilon_), Tr0(Tr0_), Tr(Tr_),
+      alpha(alpha_), r(r_), Hm(Hm_), H(H_), z0(z0_), hstar(hstar_),
+      mu(mu_), LB(LB_), zeta(zeta_), bbeta(bbeta_) {}
+
+  /** \brief Destructor. */
+  ~TJ02() { }
+
+  /** \brief Return the parameters of the model. */
+  void getParameters(double *epsilon_, double *Tr0_, double *Tr_,
+		     double *alpha_, double *r_, double *Hm_,
+		     double *H_, double *z0_, double *hstar_,
+		     double *mu_, double *LB_, double *zeta_,
+		     double *bbeta_);
+
+  /** \brief Set parameters of the model. */
+  void setParameters(const double epsilon_, const double Tr0_, double Tr_,
+		     const double alpha_, const double r_, const double Hm_,
+		     const double H_, const double z0_, const double hstar_,
+		     const double mu_, const double LB_, const double zeta_,
+		     const double bbeta_);
+
+  /** \brief  Evaluate the vector field of the Timmerman and Jin (2002)
+   * ENSO model at a given state. */
+  void evalField(const gsl_vector *state, gsl_vector *field);
+  
+};
+
+#endif
